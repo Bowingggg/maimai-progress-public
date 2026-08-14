@@ -1,0 +1,435 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>maimai 个人进步分析器</title>
+<style>
+:root{
+  --bg:#181416;--bg2:#20191c;--surface:#2a2225;--surface2:#34292d;--surface3:#403238;
+  --border:#4b3b41;--text:#fff7fa;--muted:#bdaeb4;--muted2:#8f7f86;
+  --pink:#d94f8a;--pink2:#b83d72;--pink3:#f079ad;--gold:#f6c344;--green:#72d6a5;
+  --blue:#62aefc;--purple:#b766f1;--red:#ff6f7f;--orange:#ffa74f;--shadow:0 16px 36px rgba(0,0,0,.22);
+  --r:13px;
+}
+*{box-sizing:border-box}html,body{margin:0;background:var(--bg);color:var(--text);font-family:"Segoe UI","Microsoft YaHei UI","Noto Sans SC",Arial,sans-serif;font-size:15px;line-height:1.45}body{min-height:100vh}
+button,input{font:inherit}.topbar{position:sticky;top:0;z-index:20;background:rgba(24,20,22,.94);backdrop-filter:blur(16px);border-bottom:1px solid #3b2f34}.topbar-inner{max-width:1320px;margin:auto;height:64px;display:flex;align-items:center;gap:22px;padding:0 22px}.brand{display:flex;align-items:center;gap:10px;font-weight:800;white-space:nowrap}.brand-mark{width:36px;height:36px;border-radius:50%;display:grid;place-items:center;background:linear-gradient(135deg,var(--pink3),var(--pink2));font-weight:900}.navs{display:flex;gap:4px}.nav{border:0;background:transparent;color:#d7c9cf;padding:10px 13px;border-radius:9px;font-weight:720;cursor:pointer}.nav:hover,.nav.active{background:#3b2b32;color:#fff}.top-status{margin-left:auto;color:var(--muted);font-size:12px;max-width:400px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+main{max-width:1320px;margin:0 auto;padding:22px}.tab{display:none}.tab.active{display:block}.panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);box-shadow:var(--shadow)}
+.section{margin-top:22px}.section-head{display:flex;align-items:end;justify-content:space-between;gap:16px;margin-bottom:11px}.section-head h2{font-size:20px;margin:0}.section-head p{margin:3px 0 0;color:var(--muted);font-size:12px}.subtle{color:var(--muted);font-size:12px}.accent{color:var(--pink3)}
+/* osu-style profile */
+.profile{overflow:hidden}.profile-banner{height:96px;background:radial-gradient(circle at 75% 20%,#9d3b75 0,transparent 30%),linear-gradient(120deg,#4f2438,#7b3158 42%,#2b1d2a 100%);position:relative}.profile-banner:after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,transparent 0 58%,rgba(255,255,255,.04) 58% 59%,transparent 59%)}.profile-id{display:flex;align-items:center;gap:15px;padding:0 24px;margin-top:-34px;position:relative;z-index:2}.avatar{width:82px;height:82px;border-radius:50%;border:5px solid var(--surface);background:linear-gradient(135deg,var(--pink3),#6b4fd6);display:grid;place-items:center;font-weight:900;font-size:30px;box-shadow:0 8px 24px rgba(0,0,0,.28)}.profile-name{font-size:25px;font-weight:800}.rating-line{color:var(--muted);font-size:13px;margin-top:2px}.rating-line strong{font-size:20px;color:#fff;margin-left:5px}.profile-body{display:grid;grid-template-columns:1fr 310px;gap:20px;padding:18px 24px 22px}.trend-wrap{min-width:0}.trend-title{display:flex;gap:18px;align-items:baseline;margin-bottom:8px}.trend-heading{font-size:18px;font-weight:800;color:#f7edf1}.trend-range{font-size:11px;color:var(--muted)}.big-rating{font-size:36px;font-weight:300}.rating-split{display:flex;gap:18px;color:#e9dfe3;font-weight:700}.rating-split span small{display:block;color:var(--muted);font-size:10px;font-weight:600}.spark{height:146px;width:100%;display:block;overflow:visible;touch-action:none;user-select:none;cursor:crosshair}.spark-label{fill:#ad9ba2;font-size:9px}.spark-value{fill:#f5d36a;font-size:10px;font-weight:800}.rating-chart{position:relative;min-width:0}.rating-chart svg{display:block}.rating-axis-label{fill:#9d8991;font-size:9px}.rating-grid{stroke:#493a40;stroke-width:1;opacity:.55}.rating-node{fill:#f6c344;stroke:#2a2024;stroke-width:1.5;opacity:.78}.rating-node.active{r:5;opacity:1;stroke:#f7e1a0;stroke-width:2}.rating-crosshair{stroke:#8b747d;stroke-width:1;stroke-dasharray:3 4;opacity:.75}.rating-tooltip{position:absolute;z-index:20;pointer-events:none;min-width:122px;padding:8px 10px;border-radius:9px;background:#1c1719;border:1px solid #4b3a41;box-shadow:0 8px 24px rgba(0,0,0,.35);color:#f4eaf0;font-size:11px;line-height:1.55;opacity:0;transform:translate(-50%,-100%);transition:opacity .08s}.rating-tooltip.show{opacity:1}.rating-tooltip strong{font-size:13px;color:#fff}.rating-tooltip .delta-up{color:#77d6a5}.rating-tooltip .delta-down{color:#f28592}.rating-tooltip .muted{color:#a9959d}.rating-chart-hint{font-size:9px;color:#8f7b83;margin-top:2px}.rating-chart.dragging .spark{cursor:grabbing}.profile-stats{background:var(--surface2);border-radius:10px;padding:13px 15px;display:grid;grid-template-columns:1fr 1fr;gap:9px 16px}.profile-stat small{display:block;color:var(--muted);font-size:10px}.profile-stat strong{display:block;font-size:15px;margin-top:2px}
+
+/* v0.11.1 overview: profile + activity + rating */
+.profile-body.compact-profile{display:block;padding:18px 24px 22px}
+.profile-stats.profile-stats-wide{grid-template-columns:repeat(6,minmax(0,1fr));background:transparent;border-radius:0;padding:0;gap:10px}
+.profile-stats.profile-stats-wide .profile-stat{background:var(--surface2);border:1px solid var(--border);border-radius:9px;padding:10px 12px}
+.activity-rating-panel{margin-top:14px;padding:19px 23px 14px}
+.activity-heading{font-size:19px;font-weight:850;margin-bottom:10px;color:#f7edf1}
+.activity-sub{font-size:11px;color:var(--muted);margin-top:-6px;margin-bottom:10px}
+.activity-heatmap-wrap{overflow-x:auto;padding-bottom:3px}
+.activity-heatmap{width:100%;min-width:760px;height:130px;display:block}
+.activity-month{fill:#aa959d;font-size:10px}
+.activity-weekday{fill:#8f7b83;font-size:9px}
+.activity-cell{stroke:#241c1f;stroke-width:1}
+.activity-cell.l0{fill:#31272b}.activity-cell.l1{fill:#573044}.activity-cell.l2{fill:#8a3b5a}.activity-cell.l3{fill:#c34775}.activity-cell.l4{fill:#f06292}
+/* stronger result judgement contrast */
+.judge-cell{border-top:0!important;box-shadow:inset 0 0 0 1px rgba(255,255,255,.07)}
+.judge-cell small{color:inherit!important;opacity:.82;font-weight:850;letter-spacing:.02em}
+.judge-cell strong{color:inherit!important;text-shadow:none}
+.judge-cell.cp{background:#f6c344!important;color:#211805!important}
+.judge-cell.p{background:#ffe17a!important;color:#251c06!important}
+.judge-cell.great{background:#e26f9d!important;color:#fff!important}
+.judge-cell.good{background:#5bc98c!important;color:#0a2418!important}
+.judge-cell.miss{background:#9aa8b9!important;color:#10161d!important}
+.history-mini-row{grid-template-columns:120px minmax(120px,1fr) 180px!important}
+.history-mini-row .history-delta{text-align:right!important;color:var(--muted);font-size:11px}
+.history-mini-row .history-delta.up{color:var(--green);font-weight:800}
+.history-mini-row .history-delta.down{color:var(--red);font-weight:800}
+.history-mini-row .history-pb{display:inline-block;margin-left:6px;padding:1px 5px;border-radius:999px;background:var(--gold);color:#2b1e08;font-size:9px;font-weight:900}
+
+/* common filters */
+.segment{display:flex;gap:5px;flex-wrap:wrap}.seg-btn,.level-btn{border:1px solid transparent;background:#352a2e;color:#d8cbd0;border-radius:8px;padding:7px 11px;cursor:pointer;font-weight:700}.seg-btn:hover,.level-btn:hover{background:#433238}.seg-btn.active,.level-btn.active{background:var(--pink2);color:white}.check{display:inline-flex;align-items:center;gap:7px;color:#d9ccd1;font-size:13px;cursor:pointer}.check input{accent-color:var(--pink)}
+/* B50 cards */
+.score-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px}.score-card{min-width:0;background:var(--surface2);border:1px solid var(--border);border-radius:11px;overflow:hidden;cursor:pointer;transition:.15s transform,.15s border-color,.15s background}.score-card:hover{transform:translateY(-1px);border-color:#765266;background:#392c31}.score-title{height:30px;display:flex;align-items:center;padding:0 10px;font-size:13px;font-weight:750;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;background:#5a2f43}.score-title.master{background:#813a8f}.score-title.remaster{background:#9b3e67}.score-title.expert{background:#9b4051}.score-main{display:grid;grid-template-columns:78px 1fr;min-height:78px}.jacket{width:78px;height:78px;object-fit:cover;background:#221c1e}.score-info{padding:7px 9px;min-width:0;position:relative}.ach{font-size:18px;font-weight:800;color:var(--gold);font-variant-numeric:tabular-nums}.rank{font-size:14px;font-weight:800;color:#ecb84c}.card-tags{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-top:3px}.tag{font-size:10px;font-weight:800;padding:2px 5px;border-radius:5px;background:#4a3a40;color:#eadde2}.tag.dx{color:#ff8b7f}.tag.std{color:#78b8ff}.tag.green{color:var(--green)}.rating-mini{position:absolute;right:8px;bottom:6px;color:#d5c8cd;font-size:11px}.constant{color:var(--muted);font-size:11px}.delta{color:var(--green);font-size:10px;font-weight:800}.delta.down{color:var(--red)}
+.frame-head{display:flex;align-items:center;gap:12px;margin:14px 0 10px}.frame-head h3{font-size:23px;font-weight:400;margin:0}.frame-head .sum{color:var(--muted);font-size:13px}.frame-note{margin-left:auto;color:var(--muted);font-size:11px}.more-row{text-align:center;margin-top:12px}.ghost{border:1px solid var(--border);background:#30262a;color:#eadde2;border-radius:9px;padding:8px 13px;cursor:pointer}.ghost:hover{background:#3b2e33}
+/* judgement */
+.judge-toolbar{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:15px 17px;display:flex;gap:20px;align-items:center;flex-wrap:wrap}.judge-toolbar .grow{flex:1}.levels{display:flex;gap:6px;flex-wrap:wrap}.judge-summary{margin-top:14px;display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.judge-kpi{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:13px}.judge-kpi small{color:var(--muted);display:block}.judge-kpi strong{font-size:24px;margin-top:4px;display:block}.judge-result-list{display:grid;gap:10px;margin-top:14px}.judge-row{background:var(--surface);border:1px solid var(--border);border-radius:11px;padding:14px 16px;display:grid;grid-template-columns:74px 1fr auto;gap:14px;align-items:center}.judge-level{font-size:24px;font-weight:900}.judge-mid{display:flex;gap:26px;align-items:center;flex-wrap:wrap}.metric small{display:block;color:var(--muted);font-size:10px}.metric strong{font-size:16px}.bias-fast{color:var(--blue)}.bias-late{color:var(--red)}.bias-even{color:var(--green)}.neighbor{font-size:11px;color:var(--muted);text-align:right}.neighbor b{color:#f3e9ed}.overview-label{font-size:12px;color:var(--muted);margin-top:14px}
+/* v0.12 historical replay */
+.time-machine{padding:12px 15px;display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:12px}.time-machine-title{display:flex;align-items:center;gap:9px}.time-machine-title strong{font-size:14px}.time-machine-title span{font-size:11px;color:var(--muted)}.time-machine .grow{flex:1}.time-controls{display:flex;align-items:center;gap:7px;flex-wrap:wrap}.time-controls select,.compare-controls select{background:#211a1d;color:#fff;border:1px solid var(--border);border-radius:8px;padding:7px 9px}.time-controls button,.compare-controls button{border:1px solid var(--border);background:#34292d;color:#fff;border-radius:8px;padding:7px 10px;cursor:pointer}.time-controls button.active{background:var(--pink);border-color:var(--pink)}.history-badge{padding:5px 9px;border-radius:999px;background:#4b303b;color:#ffd5e4;font-size:10px;font-weight:800}.history-source{font-size:10px;color:var(--muted)}
+.compare-panel{padding:14px 16px;margin-bottom:12px}.compare-head{display:flex;align-items:center;gap:12px;flex-wrap:wrap}.compare-head h3{margin:0;font-size:14px}.compare-controls{display:flex;align-items:center;gap:7px;flex-wrap:wrap}.compare-kpis{display:grid;grid-template-columns:repeat(6,1fr);gap:8px;margin-top:12px}.compare-kpi{background:var(--surface2);border:1px solid var(--border);border-radius:9px;padding:10px}.compare-kpi small{display:block;color:var(--muted);font-size:10px}.compare-kpi strong{display:block;font-size:18px;margin-top:3px}.compare-kpi em{display:block;font-style:normal;font-size:10px;margin-top:3px}.cmp-up{color:var(--green)}.cmp-down{color:var(--red)}.cmp-flat{color:var(--muted)}.compare-bp{margin-top:12px;border-top:1px solid var(--border);padding-top:10px}.compare-bp-title{font-size:11px;color:var(--muted);margin-bottom:7px}.compare-bp-row{display:grid;grid-template-columns:minmax(0,1fr) 100px 100px 80px;gap:10px;padding:7px 4px;border-bottom:1px solid #3d3035;font-size:11px}.compare-bp-row b{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.profile-history-note{font-size:10px;color:#d8bbc7;margin-top:5px}.judge-history-badge{font-size:10px;color:#ffd5e4;background:#4b303b;padding:4px 7px;border-radius:999px;display:none}.judge-history-badge.show{display:inline-block}
+body.snapshot-mode .time-machine,body.snapshot-mode #comparePanel{display:none!important}
+@media(max-width:900px){.compare-kpis{grid-template-columns:repeat(3,1fr)}}
+@media(max-width:720px){.time-machine{align-items:flex-start}.time-machine .grow{display:none}.compare-kpis{grid-template-columns:repeat(2,1fr)}.compare-bp-row{grid-template-columns:1fr 72px 72px}.compare-bp-row span:last-child{display:none}}
+
+.history-compact-toggle{display:flex;align-items:center;gap:7px;background:var(--surface2);border:1px solid var(--border);border-radius:9px;padding:7px 10px;color:var(--text);font-size:12px;cursor:pointer;user-select:none}
+.history-compact-toggle input{accent-color:var(--pink);width:15px;height:15px;margin:0}
+.history-compact-toggle span{font-weight:750}
+.history-compact-toggle small{color:var(--muted);font-size:10px}
+.history-summary{color:var(--muted);font-size:11px;margin:-2px 0 12px}
+
+/* history */
+.history-day{margin:22px 0 9px;font-size:18px;font-weight:700;color:#e7d9df;display:flex;align-items:baseline;gap:9px}.history-day-count{font-size:11px;font-weight:650;color:var(--muted)}.history-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:11px}.history-card .score-title{background:#4a313c}.history-card .score-main{grid-template-columns:66px 1fr;min-height:66px}.history-card .jacket{width:66px;height:66px}.history-card .ach{font-size:17px}.history-card .rating-mini{bottom:5px}.empty{padding:48px;text-align:center;color:var(--muted)}
+/* sync */
+.sync-panel{padding:18px}.sync-head{display:flex;justify-content:space-between;gap:12px;align-items:center}.primary{border:0;background:var(--pink);color:white;border-radius:9px;padding:9px 14px;font-weight:800;cursor:pointer}.sync-progress{height:6px;background:#45363c;border-radius:999px;overflow:hidden;margin:12px 0}.sync-progress>div{height:100%;width:0;background:var(--pink)}.sync-overview{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:12px 0}.sync-chip{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:12px}.sync-chip strong{display:block}.sync-chip span{font-size:11px;color:var(--muted)}details{border-top:1px solid var(--border);padding-top:12px;margin-top:12px}summary{cursor:pointer;font-weight:800}.detailbody{padding-top:12px}.field{display:grid;gap:6px;color:var(--muted);font-size:12px}.field input,.sync-settings input{width:100%;background:#211a1d;color:white;border:1px solid var(--border);border-radius:8px;padding:9px}.actions{display:flex;gap:8px;flex-wrap:wrap}.actions button{border:1px solid var(--border);background:#34292d;color:#fff;border-radius:8px;padding:8px 11px;cursor:pointer}.sync-settings{display:grid;grid-template-columns:1fr 1fr;gap:10px}.statusbox{background:#211a1d;border:1px solid var(--border);border-radius:9px;padding:10px;color:var(--muted);font-size:11px;margin-top:9px}.ok{color:var(--green)}.err{color:var(--red)}
+.public-progress{margin-top:10px;padding:11px;background:#211a1d;border:1px solid var(--border);border-radius:9px}
+.public-progress-head{display:flex;align-items:center;justify-content:space-between;gap:12px;font-size:12px}
+.public-progress-head strong{color:#fff}.public-progress-detail{font-size:11px;color:var(--muted);line-height:1.65;margin-top:6px;word-break:break-all}
+.public-progress .sync-progress{margin:8px 0}.public-progress-note{font-size:10px;color:var(--muted);margin-top:5px}
+
+/* osu!/Quaver-inspired result view inside the existing modal dimensions */
+.result-screen{padding:20px 20px 16px;background:linear-gradient(135deg,#2d2227 0%,#251e21 55%,#20191c 100%);border-bottom:1px solid var(--border)}
+.result-head{display:grid;grid-template-columns:112px minmax(0,1fr) auto;gap:18px;align-items:center}.result-cover{width:112px;height:112px;border-radius:10px;object-fit:cover;box-shadow:0 8px 28px #0006}.result-title{font-size:27px;font-weight:900;line-height:1.15}.result-meta{margin-top:7px;color:var(--muted);font-size:13px}.result-score{text-align:right}.result-score .achievement{font-size:44px;font-weight:950;color:var(--gold);line-height:1}.result-score .grade{font-size:18px;font-weight:900;margin-top:7px}.result-score .best-ref{color:var(--muted);font-size:11px;margin-top:5px}.pb-badge{display:inline-block;background:#f6c344;color:#251e21;padding:2px 7px;border-radius:999px;font-size:10px;font-weight:950;margin-left:6px;vertical-align:middle}
+.result-main{display:grid;grid-template-columns:280px 1fr;gap:16px;margin-top:17px}.result-scorebox{background:#1d1719;border:1px solid #4b3940;border-radius:11px;padding:15px}.result-scorebox .label{color:var(--muted);font-size:11px;text-transform:uppercase}.result-scorebox .dx-big{font-size:38px;font-weight:900;letter-spacing:.02em;margin:2px 0 12px}.result-mini{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.result-mini div{background:#31252a;border-radius:8px;padding:8px 10px}.result-mini small{display:block;color:var(--muted);font-size:10px}.result-mini strong{font-size:18px}.result-judges{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;align-content:start}.judge-cell{background:#302429;border-radius:9px;padding:11px 10px;border-top:3px solid transparent}.judge-cell small{display:block;color:var(--muted);font-size:10px}.judge-cell strong{display:block;font-size:23px;margin-top:3px}.judge-cell.cp{border-color:#eab936}.judge-cell.p{border-color:#f3d977}.judge-cell.great{border-color:#d7789a}.judge-cell.good{border-color:#67b986}.judge-cell.miss{border-color:#8491a1}.result-screen .judgebar{margin:14px 0 0}.history-section{padding:0 20px 18px}.history-heading{display:flex;align-items:center;justify-content:space-between;padding:14px 2px 7px;color:var(--muted);font-size:11px}.history-heading strong{color:var(--text);font-size:13px}.history-mini{margin-top:0}
+body.snapshot-mode .nav[data-tab="data"],body.snapshot-mode #data{display:none!important}body.snapshot-mode .top-status{display:block;color:#d8bbc7}
+@media(max-width:720px){.result-head{grid-template-columns:78px 1fr}.result-cover{width:78px;height:78px}.result-score{grid-column:1/-1;text-align:left}.result-main{grid-template-columns:1fr}.result-judges{grid-template-columns:repeat(3,1fr)}}
+
+
+
+/* modal */
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.72);z-index:50;display:grid;place-items:center;padding:24px}.modal[hidden]{display:none}.modal-card{width:min(980px,96vw);max-height:90vh;overflow:auto;background:#251e21;border:1px solid #5a444d;border-radius:14px;box-shadow:0 28px 80px rgba(0,0,0,.55);position:relative}.close{position:sticky;float:right;top:12px;right:12px;z-index:2;border:0;background:#49363e;color:white;border-radius:50%;width:34px;height:34px;font-size:22px;cursor:pointer}.song-detail{padding:22px}.song-hero{display:grid;grid-template-columns:126px 1fr auto;gap:18px;align-items:center}.song-hero img{width:126px;height:126px;border-radius:10px;object-fit:cover}.song-name{font-size:25px;font-weight:850}.song-sub{color:var(--muted);margin-top:4px}.song-ach{font-size:42px;font-weight:900;color:var(--gold);text-align:right}.song-ach small{display:block;color:var(--muted);font-size:11px}.judgebar{height:18px;border-radius:999px;display:flex;overflow:hidden;background:#46383e;margin:18px 0 8px}.cp{background:#eab936}.p{background:#f3d977}.great{background:#d7789a}.good{background:#67b986}.miss{background:#8491a1}.legend{display:flex;gap:14px;flex-wrap:wrap;color:var(--muted);font-size:12px}.detail-kpis{display:grid;grid-template-columns:repeat(5,1fr);gap:9px;margin-top:16px}.detail-kpi{background:var(--surface2);border-radius:9px;padding:10px}.detail-kpi small{display:block;color:var(--muted)}.detail-kpi strong{font-size:18px}.history-mini{margin-top:17px;border-top:1px solid var(--border)}.history-mini-row{display:grid;grid-template-columns:120px 1fr 90px 90px 90px;gap:10px;padding:10px 8px;border-bottom:1px solid #3d3035;font-size:12px;cursor:pointer;border-radius:6px;transition:background .12s ease,box-shadow .12s ease}.history-mini-row:hover{background:#33272c}.history-mini-row.active{background:#3a2a31;box-shadow:inset 3px 0 0 var(--pink)}.history-mini-row:focus-visible{outline:2px solid var(--pink);outline-offset:-2px}.history-mini-row span:last-child{text-align:right}
+@media(max-width:1100px){.score-grid{grid-template-columns:repeat(3,1fr)}.history-grid{grid-template-columns:repeat(3,1fr)}.profile-body{grid-template-columns:1fr}.judge-summary{grid-template-columns:1fr 1fr}.top-status{display:none}}
+
+/* v0.14.14 mobile-first polish. Desktop rules above stay unchanged. */
+@media(max-width:720px){
+  html,body{font-size:14px;-webkit-text-size-adjust:100%}
+  body{overflow-x:hidden}
+  main{padding:10px;max-width:100%}
+  .section{margin-top:16px}.section-head{align-items:flex-start;flex-wrap:wrap;gap:9px;margin-bottom:9px}.section-head h2{font-size:18px}.section-head p{font-size:11px}
+  .panel{border-radius:11px}
+
+  .topbar{backdrop-filter:blur(12px)}.topbar-inner{height:56px;padding:0 10px;gap:8px;min-width:0}.brand{min-width:0}.brand span{display:none}.brand-mark{width:32px;height:32px;font-size:13px;flex:0 0 32px}.navs{min-width:0;overflow-x:auto;overscroll-behavior-x:contain;scrollbar-width:none;-webkit-overflow-scrolling:touch}.navs::-webkit-scrollbar{display:none}.nav{padding:9px 9px;font-size:12px;white-space:nowrap;min-height:38px}.top-status{display:none}
+  body.snapshot-mode .topbar-inner{height:auto;min-height:0;display:grid;grid-template-columns:32px minmax(0,1fr);gap:0 8px;padding:7px 10px 6px}
+  body.snapshot-mode .top-status{display:block!important;grid-column:2;margin:0;max-width:none;min-width:0;text-align:right;font-size:10px;line-height:32px}
+  body.snapshot-mode .navs{grid-column:1/-1;width:100%;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:4px;margin-top:6px;overflow:visible}
+  body.snapshot-mode .nav{width:100%;padding:8px 4px;font-size:12px}
+
+  .time-machine{padding:10px 11px;align-items:flex-start;gap:9px}.time-machine-title{width:100%;display:block}.time-machine-title strong{font-size:13px}.time-machine-title span{display:block;margin-top:2px;line-height:1.45}.time-machine .grow{display:none}.time-controls{width:100%;display:grid;grid-template-columns:38px minmax(0,1fr) 38px;gap:6px}.time-controls select{width:100%;min-width:0}.time-controls button{padding:7px 7px;min-width:0}.time-controls #asOfCurrent{grid-column:1/2}.time-controls #compareToggle{grid-column:2/4}.history-badge,.history-source{max-width:100%}
+  .compare-panel{padding:11px}.compare-head{display:block}.compare-head h3{margin-bottom:8px}.compare-controls{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);gap:6px}.compare-controls select{min-width:0;width:100%}.compare-controls button{grid-column:1/-1}.compare-kpis{grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}.compare-kpi{padding:8px}.compare-kpi strong{font-size:16px}.compare-bp-row{grid-template-columns:minmax(0,1fr) 68px 68px;gap:6px}.compare-bp-row span:last-child{display:none}
+
+  .profile-banner{height:78px}.profile-id{padding:0 13px;margin-top:-28px;gap:11px}.avatar{width:66px;height:66px;border-width:4px;font-size:24px}.profile-name{font-size:21px}.rating-line{font-size:11px}.rating-line strong{font-size:17px}.profile-body,.profile-body.compact-profile{padding:14px 13px 15px}.profile-stats,.profile-stats.profile-stats-wide{grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}.profile-stats.profile-stats-wide .profile-stat{padding:8px 9px;min-width:0}.profile-stat strong{font-size:14px}.activity-rating-panel{padding:14px 12px 11px}.activity-heading{font-size:17px}.activity-heatmap-wrap{margin:0 -2px}.activity-heatmap{min-width:690px;height:122px}.rating-chart-hint{font-size:10px}
+
+  .frame-head{align-items:baseline;flex-wrap:wrap;gap:5px 10px;margin:11px 0 8px}.frame-head h3{font-size:20px}.frame-note{width:100%;margin-left:0}.segment{gap:4px}.seg-btn,.level-btn{padding:7px 9px;font-size:12px}
+  .score-grid,.history-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.score-main{grid-template-columns:64px minmax(0,1fr);min-height:64px}.jacket{width:64px;height:64px}.score-title{height:28px;padding:0 8px;font-size:12px}.score-info{padding:6px 7px}.ach{font-size:16px}.rank{font-size:12px}.rating-mini{right:6px;bottom:5px;font-size:10px}.card-tags{gap:4px}.tag{font-size:9px}.history-day{margin:17px 0 7px;font-size:16px}.history-compact-toggle{width:100%;justify-content:flex-start;flex-wrap:wrap}.history-compact-toggle small{width:100%;padding-left:22px}.empty{padding:30px 16px}
+
+  .judge-toolbar{padding:11px;gap:10px}.judge-toolbar .grow{display:none}.judge-summary{grid-template-columns:1fr 1fr;gap:7px}.judge-kpi{padding:10px}.judge-kpi strong{font-size:20px}.judge-row{grid-template-columns:52px minmax(0,1fr);gap:10px;padding:11px}.judge-level{font-size:20px}.judge-mid{gap:10px 16px}.neighbor{grid-column:1/-1;text-align:left}.metric strong{font-size:15px}
+
+  .modal{padding:6px;align-items:end}.modal-card{width:100%;max-height:calc(100dvh - 12px);border-radius:14px 14px 10px 10px}.close{top:8px;right:8px;width:38px;height:38px;background:#5a404a}.song-detail{padding:14px}.song-hero{grid-template-columns:76px minmax(0,1fr);gap:12px}.song-hero img{width:76px;height:76px}.song-name{font-size:20px;line-height:1.2;overflow-wrap:anywhere}.song-sub{font-size:11px}.song-ach{grid-column:1/-1;text-align:left;font-size:34px}.detail-kpis{grid-template-columns:1fr 1fr;gap:7px}.history-mini-row{grid-template-columns:minmax(0,1fr) auto!important;gap:3px 10px;padding:10px 9px}.history-mini-row>span:first-child{grid-column:1}.history-mini-row>strong{grid-column:2;text-align:right}.history-mini-row .history-delta{grid-column:1/-1;text-align:left!important;font-size:10px}.result-screen{padding:14px 12px 12px}.result-head{grid-template-columns:76px minmax(0,1fr);gap:11px}.result-cover{width:76px;height:76px}.result-title{font-size:20px;overflow-wrap:anywhere}.result-meta{font-size:11px}.result-score{grid-column:1/-1;text-align:left}.result-score .achievement{font-size:35px}.result-score .grade{font-size:16px}.result-main{grid-template-columns:1fr;gap:10px;margin-top:12px}.result-scorebox{padding:12px}.result-scorebox .dx-big{font-size:31px}.result-judges{grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}.judge-cell{padding:9px 8px}.judge-cell strong{font-size:20px}.history-section{padding:0 12px 12px}.history-heading{align-items:flex-start;gap:5px;flex-direction:column}.legend{gap:7px 11px}
+
+  .sync-overview,.sync-settings{grid-template-columns:1fr}.sync-panel{padding:13px}.sync-head{align-items:flex-start;flex-wrap:wrap}.actions{gap:6px}
+}
+
+@media(max-width:540px){
+  .score-grid,.history-grid{grid-template-columns:1fr}.score-main,.history-card .score-main{grid-template-columns:74px minmax(0,1fr);min-height:74px}.jacket,.history-card .jacket{width:74px;height:74px}.score-title{font-size:13px}.ach,.history-card .ach{font-size:18px}.profile-stats.profile-stats-wide{grid-template-columns:repeat(2,minmax(0,1fr))}.activity-heatmap{min-width:650px}.judge-summary{grid-template-columns:1fr}.result-judges{grid-template-columns:repeat(3,minmax(0,1fr))}
+}
+
+@media(max-width:390px){
+  main{padding:8px}.topbar-inner{padding-left:8px;padding-right:8px}.nav{font-size:11px;padding-left:7px;padding-right:7px}body.snapshot-mode .topbar-inner{padding-left:8px;padding-right:8px}body.snapshot-mode .top-status{font-size:9px}.profile-stats.profile-stats-wide{grid-template-columns:1fr 1fr}.compare-kpis{grid-template-columns:1fr 1fr}.compare-bp-row{grid-template-columns:minmax(0,1fr) 62px 62px}.result-judges{grid-template-columns:repeat(2,minmax(0,1fr))}.result-mini{grid-template-columns:1fr 1fr 1fr}.result-mini div{padding:7px}.result-mini strong{font-size:16px}.modal{padding:0}.modal-card{max-height:100dvh;border-radius:0;border-left:0;border-right:0}.history-mini-row{font-size:11px}
+}
+</style>
+</head>
+<body>
+<header class="topbar"><div class="topbar-inner"><div class="brand"><div class="brand-mark">M</div><span>maimai 个人进步分析器</span></div><nav class="navs"><button class="nav active" data-tab="overview">总览</button><button class="nav" data-tab="history">游玩历史</button><button class="nav" data-tab="judge">判定分析</button></nav><div id="topStatus" class="top-status">读取中…</div></div></header>
+<main>
+<section id="overview" class="tab active">
+  <div id="timeMachine" class="panel time-machine">
+    <div class="time-machine-title"><strong>历史回放</strong><span>按当时已发生的成绩重新计算总览与 BP · 仅列出有游玩的日期</span></div><div class="grow"></div>
+    <div class="time-controls"><button id="asOfPrev" title="上一个有游玩的日期">←</button><select id="asOfSelect"><option value="">当前</option></select><button id="asOfNext" title="下一个有游玩的日期">→</button><button id="asOfCurrent" class="active">当前</button><button id="compareToggle">日期对比</button></div>
+    <span id="asOfBadge" class="history-badge" hidden></span><span id="asOfSource" class="history-source"></span>
+  </div>
+  <div id="comparePanel" class="panel compare-panel" hidden><div class="compare-head"><h3>日期 A/B 对比</h3><div class="compare-controls"><select id="compareFrom"></select><span>→</span><select id="compareTo"></select><button id="compareRun">对比</button></div></div><div id="compareContent"></div></div>
+  <div id="profilePanel" class="panel profile"><div class="empty">正在读取个人数据…</div></div>
+  <div id="activityPanel" class="panel activity-rating-panel"><div class="empty">正在读取活动与 Rating…</div></div>
+  <div class="section"><div class="section-head"><div><h2>BP 榜</h2><p>按单曲 Rating 排序；能可靠识别版本时自动分 B35 / B15</p></div><div id="bpTabs" class="segment"></div></div><div id="bpContent"></div></div>
+</section>
+<section id="judge" class="tab">
+  <div class="judge-toolbar"><div><strong>判定分析</strong> <span id="judgeHistoryBadge" class="judge-history-badge"></span><div class="subtle">默认先看全局；历史回放时 7/30 天会以所选日期为截止日</div></div><div class="grow"></div><div class="segment"><button class="seg-btn" data-jrange="7">7天</button><button class="seg-btn active" data-jrange="30">30天</button><button class="seg-btn" data-jrange="all">全部</button></div><label class="check"><input id="multiLevel" type="checkbox"> 多选等级</label></div>
+  <div id="judgeOverview" class="judge-summary"></div>
+  <div class="overview-label">等级</div><div id="judgeLevels" class="levels"></div>
+  <div id="judgeResults" class="judge-result-list"></div>
+</section>
+<section id="history" class="tab"><div class="section-head"><div><h2>游玩历史</h2><p id="historySubtitle">按日期分组 · 同一歌曲同一难度当天只保留最后一次</p></div><label class="history-compact-toggle"><input id="compactHistory" type="checkbox" checked><span>同日同谱合并</span><small>同曲不同难度分别保留</small></label></div><div id="historyContent"></div></section>
+</main>
+<div id="modal" class="modal" hidden><div class="modal-card"><button id="closeModal" class="close">×</button><div id="modalBody"></div></div></div>
+<script>
+const E=id=>document.getElementById(id), $$=s=>[...document.querySelectorAll(s)], esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+let SNAP=null;
+const PUBLIC_STATIC=true;
+let PUBLIC_STATIC_INDEX=null;
+const PUBLIC_STATIC_PLAY_CACHE=new Map(),PUBLIC_STATIC_DETAIL_CACHE=new Map();
+function _publicStaticUrl(rel){return new URL(String(rel||''),document.baseURI).href}
+async function _publicStaticFetch(rel){let href=_publicStaticUrl(rel),r=await fetch(href,{cache:'no-cache'});if(!r.ok)throw Error(`公开数据读取失败：${rel} · HTTP ${r.status}`);return r.json()}
+function _publicDiffKey(v){return String(v||'').trim().toLowerCase().replace(/\s+/g,'').replace('remaster','re:master')}
+function _publicDetailRel(mid,diff){
+  let details=PUBLIC_STATIC_INDEX?.details||{},direct=details[String(mid||'')+'|'+String(diff||'')];if(direct)return direct;
+  let nm=String(mid||''),nd=_publicDiffKey(diff);
+  for(let [k,rel] of Object.entries(details)){let i=k.indexOf('|');if(i<0)continue;if(k.slice(0,i)===nm&&_publicDiffKey(k.slice(i+1))===nd)return rel}
+  return null
+}
+function _publicFallbackJudgement(r){
+  let p=Number(r.perfect||0),g=Number(r.great||0),gd=Number(r.good||0),m=Number(r.miss||0);
+  return {critical_perfect:Number(r.critical_perfect||0),perfect:p,great:g,good:gd,miss:m,fast:Number(r.fast||0),late:Number(r.late||0),dx_score:Number(r.dx_score||0),dx_rate:r.dx_rate??null,notes:Number(r.notes||0)||null}
+}
+async function _publicStaticChartDetail(mid,diff){
+  let cacheKey=String(mid||'')+'|'+_publicDiffKey(diff);if(PUBLIC_STATIC_DETAIL_CACHE.has(cacheKey))return PUBLIC_STATIC_DETAIL_CACHE.get(cacheKey);
+  let rel=_publicDetailRel(mid,diff);
+  if(rel){try{let d=await _publicStaticFetch(rel);PUBLIC_STATIC_DETAIL_CACHE.set(cacheKey,d);return d}catch(e){console.warn('公开单曲详情分片读取失败，尝试从成绩分片回退：',e)}}
+  let rows=(await _publicStaticAllPlays()).filter(r=>String(r.music_id??'')===String(mid??'')&&_publicDiffKey(r.difficulty)===_publicDiffKey(diff));
+  rows.sort((a,b)=>String(b.played_at||'').localeCompare(String(a.played_at||'')));
+  if(!rows.length){let empty={history:[],plays:0};PUBLIC_STATIC_DETAIL_CACHE.set(cacheKey,empty);return empty}
+  let history=rows.map(r=>({...r,judgement:_publicFallbackJudgement(r)})),best=history.reduce((a,b)=>Number(b.achievement||0)>Number(a.achievement||0)?b:a,history[0]);
+  let first=history[0],d={music_id:first.music_id,difficulty:first.difficulty,level_label:first.level_label,song_name:first.song_name,cover_url:first.cover_url,plays:history.length,latest:history[0],best,latest_judgement:history[0].judgement,history,_fallback:true};
+  PUBLIC_STATIC_DETAIL_CACHE.set(cacheKey,d);return d
+}
+async function initPublicStatic(){
+  if(SNAP)return;
+  let [idx,core]=await Promise.all([_publicStaticFetch('data/index.json'),_publicStaticFetch('data/core.json')]);
+  PUBLIC_STATIC_INDEX=idx;SNAP={...core,_static:true};
+  if(SNAP.home&&(!SNAP.home.available_dates||!SNAP.home.available_dates.length)&&idx.play_dates)SNAP.home.available_dates=idx.play_dates;
+}
+async function _publicStaticAllPlays(){
+  if(!PUBLIC_STATIC_INDEX)return[];
+  let files=PUBLIC_STATIC_INDEX.play_files||[],missing=files.filter(x=>!PUBLIC_STATIC_PLAY_CACHE.has(x));
+  if(missing.length){let vals=await Promise.all(missing.map(x=>_publicStaticFetch(x)));missing.forEach((x,i)=>PUBLIC_STATIC_PLAY_CACHE.set(x,vals[i]?.plays||[]))}
+  let rows=[];for(let f of files)rows.push(...(PUBLIC_STATIC_PLAY_CACHE.get(f)||[]));return rows;
+}
+const fa=v=>v==null?'—':Number(v).toFixed(4)+'%', f2=v=>v==null?'—':Number(v).toFixed(2)+'%', num=v=>Number(v||0).toLocaleString('zh-CN');
+const day=s=>(s||'').slice(0,10).replaceAll('-','/');
+const dt=s=>{if(!s)return'—';let raw=String(s);if(/^\d{4}-\d{2}-\d{2}$/.test(raw))return raw.replaceAll('-','/');return raw.slice(0,10).replaceAll('-','/')};
+let HOME=null,ABILITY=null,BP_MODE='',AS_OF_DATE='',AVAILABLE_DATES=[];let JR={range:'30',selected:[],multi:false};
+function diffClass(d){d=(d||'').toLowerCase();return d.includes('re:')?'remaster':d.includes('master')?'master':d.includes('expert')?'expert':''}
+function gradeColor(g){if((g||'').startsWith('SSS'))return 'var(--gold)';if((g||'').startsWith('SS'))return '#f0b86a';if((g||'').startsWith('S'))return '#74d5bd';return '#e7dce0'}
+function scoreCard(x,opts={}){let delta=x.delta_previous;return `<article class="score-card ${opts.history?'history-card':''}" data-song="${esc(x.music_id)}" data-diff="${esc(x.difficulty||'')}" role="button" tabindex="0" title="点击查看单曲详细成绩"><div class="score-title ${diffClass(x.difficulty)}">${esc(x.song_name||'Music #'+x.music_id)}</div><div class="score-main"><img class="jacket" src="${esc(x.cover_url||'')}"><div class="score-info"><div class="ach">${fa(x.achievement)}</div><div class="rank" style="color:${gradeColor(x.rank)}">${esc(x.rank||'—')}</div><div class="card-tags"><span class="tag ${(x.score_type||'').toUpperCase()==='DX'?'dx':'std'}">${esc(x.score_type||'')}</span><span class="tag">${esc(x.difficulty||'')}</span>${x.level_label?`<span class="tag">Lv ${esc(x.level_label)}</span>`:''}</div><div class="constant">${x.chart_constant?esc(x.chart_constant):'—'}${x.chart_rating!=null?` → Ra ${x.chart_rating}`:''}</div>${delta!=null&&opts.showDelta?`<div class="delta ${delta<0?'down':''}">${delta>=0?'+':''}${Number(delta).toFixed(4)}%</div>`:''}<div class="rating-mini">${opts.rankNo?'#'+opts.rankNo:''}</div></div></div></article>`}
+function bindSongCards(){$$('[data-song]').forEach(el=>{if(el.dataset.songBound==='1')return;el.dataset.songBound='1';let go=()=>openSong(el.dataset.song,el.dataset.diff);el.onclick=go;el.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();go()}}})}
+let RATING_CHART_STATE={rows:[],start:0,end:0,drag:null};
+function _ratingDateLabel(day,wide=false){
+  if(!day)return'';let s=String(day).split('-');
+  return wide?`${s[0]}/${s[1]}/${s[2]}`:`${s[1]}/${s[2]}`
+}
+function _ratingVisibleRows(){
+  let s=RATING_CHART_STATE,all=s.rows||[];
+  if(!all.length)return[];
+  let a=Math.max(0,Math.min(s.start,all.length-1)),b=Math.max(a,Math.min(s.end,all.length-1));
+  return all.slice(a,b+1)
+}
+function ratingSpark(rows){
+  if(!rows?.length)return '<div class="empty" style="padding:34px 0">暂无 Rating 历史</div>';
+  let clean=rows.map(x=>({...x,rating:Number(x.rating)})).filter(x=>Number.isFinite(x.rating));
+  if(!clean.length)return '<div class="empty" style="padding:34px 0">暂无 Rating 历史</div>';
+  RATING_CHART_STATE={rows:clean,start:0,end:clean.length-1,drag:null};
+  let first=clean[0],last=clean.at(-1),delta=last.rating-first.rating;
+  return `<div class="trend-title"><div class="trend-heading">Rating 走势</div><div class="trend-range">${esc(_ratingDateLabel(first.day,true))} → ${esc(_ratingDateLabel(last.day,true))} · ${delta>=0?'+':''}${delta}</div></div><div class="rating-chart" id="ratingChart"><svg class="spark" id="ratingSvg" viewBox="0 0 720 146" preserveAspectRatio="none"></svg><div class="rating-tooltip" id="ratingTooltip"></div><div class="rating-chart-hint">滚轮缩放 · 拖动平移 · 双击恢复全部</div></div>`
+}
+function renderRatingChart(){
+  let svg=E('ratingSvg'),wrap=E('ratingChart');if(!svg||!wrap)return;
+  let rows=_ratingVisibleRows();if(!rows.length)return;
+  const w=720,h=146,L=12,R=12,T=12,B=28,plotH=h-T-B;
+  let vals=rows.map(x=>Number(x.rating)),min=Math.min(...vals),max=Math.max(...vals);
+  if(max===min){min-=1;max+=1}else{let pad=Math.max(2,(max-min)*.09);min-=pad;max+=pad}
+  let X=i=>L+(w-L-R)*(rows.length===1?.5:i/(rows.length-1));
+  let Y=v=>T+plotH*(1-(Number(v)-min)/(max-min));
+  let pts=rows.map((r,i)=>`${X(i).toFixed(1)},${Y(r.rating).toFixed(1)}`).join(' ');
+  let grid='',ticks='';
+  // Keep date labels sparse enough to stay readable; zooming exposes more detail.
+  let target=Math.min(7,rows.length),step=Math.max(1,Math.ceil((rows.length-1)/Math.max(1,target-1)));
+  let tickIdx=[];for(let i=0;i<rows.length;i+=step)tickIdx.push(i);if(tickIdx.at(-1)!==rows.length-1)tickIdx.push(rows.length-1);
+  tickIdx=[...new Set(tickIdx)];
+  for(const i of tickIdx){let x=X(i);grid+=`<line class="rating-grid" x1="${x}" y1="${T}" x2="${x}" y2="${h-B}"/>`;ticks+=`<text class="rating-axis-label" x="${x}" y="${h-7}" text-anchor="middle">${esc(_ratingDateLabel(rows[i].day))}</text>`}
+  let nodes=rows.map((r,i)=>`<circle class="rating-node" data-i="${i}" cx="${X(i).toFixed(1)}" cy="${Y(r.rating).toFixed(1)}" r="3.0"/>`).join('');
+  let last=rows.at(-1);
+  svg.innerHTML=`${grid}<line x1="${L}" y1="${h-B}" x2="${w-R}" y2="${h-B}" stroke="#4a3a40" stroke-width="1"/><polyline points="${pts}" fill="none" stroke="#f6c344" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>${nodes}${ticks}<text class="spark-value" x="${w-R}" y="10" text-anchor="end">${last.rating}</text><line id="ratingCrosshair" class="rating-crosshair" x1="0" y1="${T}" x2="0" y2="${h-B}" visibility="hidden"/>`;
+  bindRatingChart();
+}
+function _ratingNearestIndex(evt,svg,rows){
+  let rect=svg.getBoundingClientRect(),px=(evt.clientX-rect.left)/rect.width*720,L=12,R=12;
+  if(rows.length<=1)return 0;
+  let t=(px-L)/(720-L-R);return Math.max(0,Math.min(rows.length-1,Math.round(t*(rows.length-1))))
+}
+function _showRatingTooltip(evt,i){
+  let svg=E('ratingSvg'),tip=E('ratingTooltip'),rows=_ratingVisibleRows();if(!svg||!tip||!rows[i])return;
+  let r=rows[i],rect=svg.getBoundingClientRect(),node=svg.querySelector(`.rating-node[data-i="${i}"]`);if(!node)return;
+  svg.querySelectorAll('.rating-node.active').forEach(x=>x.classList.remove('active'));node.classList.add('active');
+  let cx=Number(node.getAttribute('cx')),cy=Number(node.getAttribute('cy')),cross=E('ratingCrosshair');
+  if(cross){cross.setAttribute('x1',cx);cross.setAttribute('x2',cx);cross.setAttribute('visibility','visible')}
+  let delta=r.day_delta;
+  let ds=delta==null?'—':`${delta>=0?'+':''}${delta}`;
+  tip.innerHTML=`<strong>${esc(_ratingDateLabel(r.day,true))}</strong><br><strong>${num(r.rating)}</strong><br><span class="delta-up">${esc(ds)}</span><br><span class="muted">${num(r.plays)} 次游玩</span>`;
+  let left=(cx/720)*rect.width,top=(cy/146)*rect.height;
+  // Prevent tooltip from clipping left/right edges.
+  left=Math.max(92,Math.min(rect.width-92,left));
+  tip.style.left=`${left}px`;tip.style.top=`${Math.max(12,top-7)}px`;tip.classList.add('show');
+}
+function _hideRatingTooltip(){let tip=E('ratingTooltip'),svg=E('ratingSvg');tip?.classList.remove('show');if(svg){svg.querySelectorAll('.rating-node.active').forEach(x=>x.classList.remove('active'));let c=E('ratingCrosshair');if(c)c.setAttribute('visibility','hidden')}}
+function bindRatingChart(){
+  let svg=E('ratingSvg'),wrap=E('ratingChart');if(!svg||!wrap||svg.dataset.bound==='1')return;svg.dataset.bound='1';
+  svg.addEventListener('mousemove',e=>{if(RATING_CHART_STATE.drag){let s=RATING_CHART_STATE,all=s.rows,span=s.drag.span,rect=svg.getBoundingClientRect(),dx=(e.clientX-s.drag.x)/Math.max(1,rect.width),shift=Math.round(-dx*Math.max(1,span-1));let start=Math.max(0,Math.min(all.length-span,s.drag.start+shift));if(start!==s.start){s.start=start;s.end=start+span-1;renderRatingChart();}return}_showRatingTooltip(e,_ratingNearestIndex(e,svg,_ratingVisibleRows()))});
+  svg.addEventListener('mouseleave',()=>{RATING_CHART_STATE.drag=null;wrap.classList.remove('dragging');_hideRatingTooltip()});
+  svg.addEventListener('mousedown',e=>{if(e.button!==0)return;let s=RATING_CHART_STATE;s.drag={x:e.clientX,start:s.start,span:s.end-s.start+1};wrap.classList.add('dragging');e.preventDefault()});
+  window.addEventListener('mouseup',()=>{RATING_CHART_STATE.drag=null;wrap?.classList.remove('dragging')},{once:true});
+  svg.addEventListener('wheel',e=>{let s=RATING_CHART_STATE,all=s.rows;if(all.length<=2)return;e.preventDefault();let span=s.end-s.start+1,minSpan=Math.min(3,all.length),factor=e.deltaY<0?.72:1.38,newSpan=Math.max(minSpan,Math.min(all.length,Math.round(span*factor)));if(newSpan===span)return;let rect=svg.getBoundingClientRect(),ratio=Math.max(0,Math.min(1,(e.clientX-rect.left)/rect.width)),center=s.start+ratio*(span-1),start=Math.round(center-ratio*(newSpan-1));start=Math.max(0,Math.min(all.length-newSpan,start));s.start=start;s.end=start+newSpan-1;_hideRatingTooltip();renderRatingChart()},{passive:false});
+  svg.addEventListener('dblclick',()=>{let s=RATING_CHART_STATE;s.start=0;s.end=s.rows.length-1;_hideRatingTooltip();renderRatingChart()});
+}
+
+function _dateLabel(s){return String(s||'').replaceAll('-','/')}
+function _dateIndex(d){return AVAILABLE_DATES.indexOf(d)}
+function _setHistoryControls(){
+  let sel=E('asOfSelect');if(!sel)return;
+  let values=new Set([...sel.options].map(x=>x.value));
+  if(AVAILABLE_DATES.some(d=>!values.has(d))||sel.options.length!==AVAILABLE_DATES.length+1){
+    sel.innerHTML='<option value="">当前</option>'+AVAILABLE_DATES.map(d=>`<option value="${esc(d)}">${esc(_dateLabel(d))}</option>`).join('');
+  }
+  sel.value=AS_OF_DATE||'';E('asOfCurrent')?.classList.toggle('active',!AS_OF_DATE);
+  let badge=E('asOfBadge');if(badge){badge.hidden=!AS_OF_DATE;badge.textContent=AS_OF_DATE?`历史视图 · 截至 ${_dateLabel(AS_OF_DATE)}`:''}
+  let src=E('asOfSource');if(src)src.textContent=AS_OF_DATE?(HOME?.profile?.rating_state_source||'动态回算'):'';
+  let j=E('judgeHistoryBadge');if(j){j.classList.toggle('show',!!AS_OF_DATE);j.textContent=AS_OF_DATE?`截至 ${_dateLabel(AS_OF_DATE)}`:''}
+}
+function _fillCompareSelects(){
+  let a=E('compareFrom'),b=E('compareTo');if(!a||!b||!AVAILABLE_DATES.length)return;
+  let opts=AVAILABLE_DATES.slice().reverse().map(d=>`<option value="${esc(d)}">${esc(_dateLabel(d))}</option>`).join('');a.innerHTML=opts;b.innerHTML=opts;
+  let target=AS_OF_DATE&&AVAILABLE_DATES.includes(AS_OF_DATE)?AS_OF_DATE:AVAILABLE_DATES[0],idx=AVAILABLE_DATES.indexOf(target),prev=AVAILABLE_DATES[Math.min(AVAILABLE_DATES.length-1,idx+1)]||target;
+  a.value=prev;b.value=target;
+}
+async function setAsOfDate(v){return}
+function stepAsOf(dir){
+  if(!AVAILABLE_DATES.length)return;
+  if(!AS_OF_DATE){if(dir<0)setAsOfDate(AVAILABLE_DATES[0]);return}
+  let i=_dateIndex(AS_OF_DATE);if(i<0)return;
+  let ni=i-dir; // dates are newest -> oldest; right arrow goes newer.
+  if(ni<0)setAsOfDate('');else if(ni<AVAILABLE_DATES.length)setAsOfDate(AVAILABLE_DATES[ni]);
+}
+function _bpMap(home){let rows=home?.rating_frames?.all50||[];return new Map(rows.map(x=>[`${x.music_id}|${x.difficulty||''}`,x]))}
+function _cmpDelta(a,b,digits=0,suffix=''){if(a==null||b==null)return '—';let x=Number(b)-Number(a),cls=x>0?'cmp-up':x<0?'cmp-down':'cmp-flat';return `<span class="${cls}">${x>0?'+':''}${x.toFixed(digits)}${suffix}</span>`}
+function renderDateCompare(a,b){
+  let ap=a.profile||{},bp=b.profile||{},as=a.stats||{},bs=b.stats||{},am=_bpMap(a),bm=_bpMap(b),improved=[];
+  for(let [k,to] of bm){let from=am.get(k);if(from&&Number(to.achievement)>Number(from.achievement)+1e-9)improved.push({to,from,delta:Number(to.achievement)-Number(from.achievement)})}
+  improved.sort((x,y)=>y.delta-x.delta);
+  let entered=[...bm.keys()].filter(k=>!am.has(k)).length,dropped=[...am.keys()].filter(k=>!bm.has(k)).length;
+  E('compareContent').innerHTML=`<div class="compare-kpis">
+    <div class="compare-kpi"><small>DX Rating</small><strong>${num(ap.player_rating)} → ${num(bp.player_rating)}</strong><em>${_cmpDelta(ap.player_rating,bp.player_rating,0)}</em></div>
+    <div class="compare-kpi"><small>有效成绩</small><strong>${num(as.valid_plays)} → ${num(bs.valid_plays)}</strong><em>${_cmpDelta(as.valid_plays,bs.valid_plays,0)}</em></div>
+    <div class="compare-kpi"><small>游玩谱面</small><strong>${num(as.charts)} → ${num(bs.charts)}</strong><em>${_cmpDelta(as.charts,bs.charts,0)}</em></div>
+    <div class="compare-kpi"><small>平均达成率</small><strong>${f2(as.avg_achievement)} → ${f2(bs.avg_achievement)}</strong><em>${_cmpDelta(as.avg_achievement,bs.avg_achievement,2,'pp')}</em></div>
+    <div class="compare-kpi"><small>BP 提升</small><strong>${improved.length}</strong><em class="cmp-up">Best 50 中提升</em></div>
+    <div class="compare-kpi"><small>Best 50 变动</small><strong>+${entered} / -${dropped}</strong><em>新进 / 掉出</em></div>
+  </div><div class="compare-bp"><div class="compare-bp-title">BP 提升最多</div>${improved.slice(0,8).map(x=>`<div class="compare-bp-row"><b>${esc(x.to.song_name||'Music #'+x.to.music_id)} · ${esc(x.to.difficulty||'')}</b><span>${fa(x.from.achievement)}</span><span>${fa(x.to.achievement)}</span><span class="cmp-up">+${x.delta.toFixed(4)}pp</span></div>`).join('')||'<div class="empty" style="padding:18px">这两个日期之间 Best 50 没有 Achievement 提升</div>'}</div>`;
+}
+async function runDateCompare(){if(E('compareContent'))E('compareContent').innerHTML='<div class="empty">公开快照不提供历史日期回算。</div>'}
+async function loadHome(){HOME=SNAP?.home||{};AVAILABLE_DATES=HOME.available_dates||[];_setHistoryControls();renderProfile();renderBP()}
+function _activityDateParts(s){
+  let m=String(s||'').match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if(!m)return null;
+  return new Date(Number(m[1]),Number(m[2])-1,Number(m[3]));
+}
+function _dayKey(d){
+  let p=n=>String(n).padStart(2,'0');
+  return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())}`;
+}
+function _activityLevel(n){
+  n=Number(n||0);
+  if(n<=0)return 0;
+  if(n<=2)return 1;
+  if(n<=5)return 2;
+  if(n<=9)return 3;
+  return 4;
+}
+function activityHeatmap(rows){
+  rows=rows||[];
+  let map=new Map(rows.map(x=>[x.day,Number(x.plays||0)]));
+  let last=rows.length?_activityDateParts(rows.at(-1).day):new Date();
+  if(!last)last=new Date();
+  // End on Sunday, 53 complete weeks.
+  let end=new Date(last);let add=(7-end.getDay())%7;end.setDate(end.getDate()+add);
+  let start=new Date(end);start.setDate(end.getDate()-370);
+  const W=900,H=130,L=42,T=24,C=13,G=3;
+  let cells='',months='',lastMonth=-1;
+  for(let wi=0;wi<53;wi++){
+    let monday=new Date(start);monday.setDate(start.getDate()+wi*7);
+    let month=monday.getMonth();
+    if(month!==lastMonth){
+      months+=`<text class="activity-month" x="${L+wi*(C+G)}" y="12">${monday.toLocaleString('zh-CN',{month:'short'})}</text>`;
+      lastMonth=month;
+    }
+    for(let di=0;di<7;di++){
+      let d=new Date(monday);d.setDate(monday.getDate()+di);
+      let k=_dayKey(d),n=map.get(k)||0,lv=_activityLevel(n);
+      let x=L+wi*(C+G),y=T+di*(C+G);
+      cells+=`<rect class="activity-cell l${lv}" x="${x}" y="${y}" width="${C}" height="${C}" rx="3"><title>${k} · ${n} 次有效游玩</title></rect>`;
+    }
+  }
+  let weekdays=`<text class="activity-weekday" x="0" y="${T+1*(C+G)+10}">Mon</text><text class="activity-weekday" x="0" y="${T+3*(C+G)+10}">Wed</text><text class="activity-weekday" x="0" y="${T+5*(C+G)+10}">Fri</text>`;
+  return `<div class="activity-heatmap-wrap"><svg class="activity-heatmap" viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMinYMin meet">${months}${weekdays}${cells}</svg></div>`;
+}
+function renderProfile(){
+  let p=HOME.profile||{},s=HOME.stats||{};
+  E('profilePanel').innerHTML=`<div class="profile-banner"></div><div class="profile-id"><div class="avatar">M</div><div><div class="profile-name">${esc(p.user_name||'PLAYER')}</div><div class="rating-line">DX RATING <strong>${p.player_rating??'—'}</strong>${p.highest_rating?` · ${HOME.historical?'截至当时最高':'最高'} ${p.highest_rating}`:''}</div>${HOME.historical?`<div class="profile-history-note">截至 ${esc(_dateLabel(HOME.as_of))} · ${esc(p.rating_state_source||'按历史成绩回算')}</div>`:''}</div></div><div class="profile-body"><div class="trend-wrap">${ratingSpark(HOME.rating_trend||[])}<div class="rating-split" style="margin-top:4px">${p.old_rating!=null?`<span><small>B35 / 旧曲</small>${p.old_rating}</span>`:''}${p.new_rating!=null?`<span><small>B15 / 新曲</small>${p.new_rating}</span>`:''}</div></div><div class="profile-stats"><div class="profile-stat"><small>有效成绩</small><strong>${num(s.valid_plays)}</strong></div><div class="profile-stat"><small>游玩谱面</small><strong>${num(s.charts)}</strong></div><div class="profile-stat"><small>成绩中位数</small><strong>${f2(s.median_achievement)}</strong></div><div class="profile-stat"><small>平均达成率</small><strong>${f2(s.avg_achievement)}</strong></div><div class="profile-stat"><small>累计 Note</small><strong>${num(s.total_notes)}</strong></div><div class="profile-stat"><small>有效游玩天数</small><strong>${num(s.play_days)}</strong></div></div></div>`;
+  E('activityPanel').innerHTML=`<div class="activity-heading">游戏活动</div><div class="activity-sub">最近约一年 · 颜色越亮代表当天有效游玩越多</div>${activityHeatmap(HOME.activity_days||[])}`;
+  requestAnimationFrame(renderRatingChart)
+}
+function renderBP(){let f=HOME.rating_frames||{};let tabs=E('bpTabs');if(f.split){if(!BP_MODE)BP_MODE='b35';tabs.innerHTML=`<button class="seg-btn ${BP_MODE==='b35'?'active':''}" data-bp="b35">B35</button><button class="seg-btn ${BP_MODE==='b15'?'active':''}" data-bp="b15">B15</button><button class="seg-btn ${BP_MODE==='all'?'active':''}" data-bp="all">全部</button>`}else{BP_MODE='all';tabs.innerHTML=''}let rows=BP_MODE==='b35'?f.b35:BP_MODE==='b15'?f.b15:f.all50;let title=(BP_MODE==='b35'?'B35':BP_MODE==='b15'?'B15':'Best 50')+(HOME.historical?` · ${_dateLabel(HOME.as_of)}`:'');let sum=rows.reduce((a,x)=>a+Number(x.chart_rating||0),0);E('bpContent').innerHTML=`<div class="frame-head"><h3>${title}</h3><span class="sum">${sum}</span><span class="frame-note">${esc(f.reason||'')}</span></div><div class="score-grid">${rows.map((x,i)=>scoreCard(x,{rankNo:i+1})).join('')}</div>`;$$('[data-bp]').forEach(b=>b.onclick=()=>{BP_MODE=b.dataset.bp;renderBP()});bindSongCards()}
+async function openSong(mid,diff){
+  E('modalBody').innerHTML='<div class="empty" style="padding:50px">正在读取单曲详细成绩…</div>';E('modal').hidden=false;
+  try{let d=await _publicStaticChartDetail(mid,diff);
+  let best=d.best||{},history=d.history||[];
+  if(!history.length){E('modalBody').innerHTML='<div class="empty" style="padding:50px">暂无有效历史成绩</div>';E('modal').hidden=false;return}
+  function rankName(a){a=Number(a);if(a>=100.5)return'SSS+';if(a>=100)return'SSS';if(a>=99.5)return'SS+';if(a>=99)return'SS';if(a>=98)return'S+';if(a>=97)return'S';if(a>=94)return'AAA';if(a>=90)return'AA';if(a>=80)return'A';return'D'}
+  function renderPlay(index){
+    index=Math.max(0,Math.min(Number(index)||0,history.length-1));
+    let current=history[index]||{},j=current.judgement||{},total=Number(j.notes||0),grade=rankName(current.achievement);
+    let isBest=Math.abs(Number(current.achievement||0)-Number(best.achievement||0))<.00005;
+    let parts=[['cp','CP',j.critical_perfect],['p','P',j.perfect],['great','Great',j.great],['good','Good',j.good],['miss','Miss',j.miss]];
+    E('modalBody').innerHTML=`<div class="song-detail-v2">
+      <div class="result-screen">
+        <div class="result-head"><img class="result-cover" src="${esc(d.cover_url||'')}"><div><div class="result-title">${esc(d.song_name||'Music #'+mid)}</div><div class="result-meta">${esc(d.difficulty||'')} · Lv ${esc(d.level_label||'—')} · ${esc(dt(current.played_at))}</div></div><div class="result-score"><div class="achievement">${fa(current.achievement)}</div><div class="grade" style="color:${gradeColor(grade)}">${esc(grade)}${isBest?'<span class="pb-badge">PB</span>':''}</div>${isBest?'':`<div class="best-ref">BEST ${fa(best.achievement)}</div>`}</div></div>
+        <div class="result-main"><div class="result-scorebox"><div class="label">DX SCORE</div><div class="dx-big">${num(j.dx_score)}</div><div class="result-mini"><div><small title="实际 DX Score ÷ 理论最大 DX Score × 100%；每个 Note 理论最大 DX Score 为 3">DX Score 比率</small><strong>${f2(j.dx_rate)}</strong></div><div><small>FAST</small><strong class="bias-fast">${num(j.fast)}</strong></div><div><small>LATE</small><strong class="bias-late">${num(j.late)}</strong></div></div></div><div class="result-judges">${parts.map(x=>`<div class="judge-cell ${x[0]}"><small>${x[1]}</small><strong>${num(x[2])}</strong></div>`).join('')}</div></div>
+        <div class="judgebar">${parts.map(x=>`<i class="${x[0]}" style="width:${total?100*Number(x[2]||0)/total:0}%"></i>`).join('')}</div>
+      </div>
+      <div class="history-section"><div class="history-heading"><strong>历史成绩</strong><span>${d.plays} 次有效记录 · 点击任意一局切换上方结算</span></div><div class="history-mini">${history.map((x,i)=>{let initial=history.at(-1),base=initial?Number(initial.achievement):null,delta=base==null?null:Number(x.achievement)-base,isInitial=i===history.length-1,pb=Math.abs(Number(x.achievement||0)-Number(best.achievement||0))<.00005;let ds=isInitial?`初始 Ra ${initial?.chart_rating??'—'}`:`较初次 ${delta>=0?'+':''}${delta.toFixed(4)}pp`;let cls=isInitial?'':delta>0?'up':delta<0?'down':'';return `<div class="history-mini-row ${i===index?'active':''}" data-play-index="${i}" role="button" tabindex="0" aria-label="查看 ${esc(dt(x.played_at))} 的详细成绩"><span>${esc(dt(x.played_at))}</span><strong>${fa(x.achievement)}${pb?'<span class="history-pb">PB</span>':''}</strong><span class="history-delta ${cls}">${esc(ds)}</span></div>`}).join('')}</div></div>
+    </div>`;
+    $$('#modalBody [data-play-index]').forEach(row=>{let activate=()=>renderPlay(Number(row.dataset.playIndex));row.onclick=activate;row.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();activate()}}});
+  }
+  renderPlay(0)
+  }catch(e){console.error(e);E('modalBody').innerHTML=`<div class="empty" style="padding:44px 28px"><strong style="display:block;color:#f09aaa;margin-bottom:8px">单曲详情读取失败</strong><span>${esc(e?.message||e||'未知错误')}</span><div style="margin-top:10px;color:#9f8d94;font-size:11px">公开快照会优先读取谱面详情分片，并在分片缺失时从公开成绩回退。</div></div>`}
+}
+function closeModal(){E('modal').hidden=true}
+async function loadAbility(){ABILITY=SNAP?.abilities?.[JR.range]||SNAP?.abilities?.all||{};renderJudge()}
+function setJRange(v){JR.range=v;$$('[data-jrange]').forEach(b=>b.classList.toggle('active',b.dataset.jrange===v));loadAbilityRange()}
+async function loadAbilityRange(){ABILITY=SNAP?.abilities?.[JR.range]||SNAP?.abilities?.all||{};renderJudge()}
+function biasLabel(t){let b=Number(t?.bias_index);if(!Number.isFinite(b))return['—',''];if(Math.abs(b)<10)return[`平衡 ${b>=0?'+':''}${b.toFixed(1)}`,'bias-even'];return[b>0?`FAST +${b.toFixed(1)}`:`LATE ${b.toFixed(1)}`,b>0?'bias-fast':'bias-late']}
+function renderJudge(){let all=ABILITY?.judgement||{},lv=ABILITY?.judgement_by_level||{},pp=all.perfect_precision||{},t=all.timing||{};let [bt,bc]=biasLabel(t);E('judgeOverview').innerHTML=`<div class="judge-kpi"><small>全部有效成绩 · Tap+Hold 大P率</small><strong>${f2(pp.tap_hold_cp_rate)}</strong></div><div class="judge-kpi"><small>全部有效成绩 · 时机偏向</small><strong class="${bc}">${esc(bt)}</strong></div><div class="judge-kpi"><small>有效判定局</small><strong>${num(ABILITY.valid_plays)}</strong></div>`;let levels=lv.levels||[];if(!JR.selected.length&&levels.length){let preferred=levels.filter(x=>x.plays>=5).at(-1)||levels.at(-1);JR.selected=[preferred.level]}E('judgeLevels').innerHTML=levels.map(x=>`<button class="level-btn ${JR.selected.includes(x.level)?'active':''}" data-level="${esc(x.level)}">${esc(x.level)} <span style="opacity:.65">${x.plays}</span></button>`).join('');$$('[data-level]').forEach(b=>b.onclick=()=>{let l=b.dataset.level;if(JR.multi){JR.selected=JR.selected.includes(l)?JR.selected.filter(x=>x!==l):[...JR.selected,l]}else JR.selected=[l];renderJudge()});let by=new Map(levels.map((x,i)=>[x.level,{x,i}]));let selected=levels.filter(x=>JR.selected.includes(x.level));E('judgeResults').innerHTML=selected.map(x=>{let {i}=by.get(x.level),lo=levels[i-1],hi=levels[i+1];let [btxt,bcls]=biasLabel(x.timing);let dif=(other)=>other&&other.tap_hold_cp_rate!=null&&x.tap_hold_cp_rate!=null?(x.tap_hold_cp_rate-other.tap_hold_cp_rate):null;let lod=dif(lo),hid=dif(hi);return `<div class="judge-row"><div class="judge-level">${esc(x.level)}</div><div class="judge-mid"><div class="metric"><small>大P率</small><strong>${f2(x.tap_hold_cp_rate)}</strong></div><div class="metric"><small>偏差</small><strong class="${bcls}">${esc(btxt)}</strong></div><div class="metric"><small>样本</small><strong>${x.plays} 局</strong></div></div><div class="neighbor">${lo?`比 ${esc(lo.level)}：<b>${lod==null?'—':(lod>=0?'+':'')+lod.toFixed(2)+'pp'}</b><br>`:''}${hi?`比 ${esc(hi.level)}：<b>${hid==null?'—':(hid>=0?'+':'')+hid.toFixed(2)+'pp'}</b>`:''}</div></div>`}).join('')||'<div class="empty">请选择一个等级</div>'}
+let HISTORY_ROWS=null;
+function _historyRank(a){a=Number(a);if(a>=100.5)return'SSS+';if(a>=100)return'SSS';if(a>=99.5)return'SS+';if(a>=99)return'SS';if(a>=98)return'S+';if(a>=97)return'S';if(a>=94)return'AAA';if(a>=90)return'AA';return'A'}
+function _historyCompact(rows){
+  let sorted=[...(rows||[])].sort((a,b)=>String(b.played_at||'').localeCompare(String(a.played_at||'')));
+  if(!E('compactHistory')?.checked)return sorted;
+  let seen=new Set(),out=[];
+  for(let x of sorted){let d=(x.played_at||'未知日期').slice(0,10),song=String(x.music_id??x.song_name??''),diff=String(x.difficulty??''),key=d+'|'+song+'|'+diff;if(seen.has(key))continue;seen.add(key);out.push(x)}
+  return out;
+}
+function renderHistory(){
+  let source=HISTORY_ROWS||[],rows=_historyCompact(source),groups={},dayCounts={};
+  for(let x of source){let d=(x.played_at||'未知日期').slice(0,10);dayCounts[d]=(dayCounts[d]||0)+1}
+  for(let x of rows){let d=(x.played_at||'未知日期').slice(0,10);(groups[d]??=[]).push(x)}
+  let out='';if(source.length)out+=`<div class="history-summary">${E('compactHistory')?.checked?`已合并为 ${rows.length} 条 · 原始 ${source.length} 条有效记录`:`显示全部 ${source.length} 条有效记录`}</div>`;
+  for(let d of Object.keys(groups).sort().reverse()){groups[d].sort((a,b)=>String(b.played_at||'').localeCompare(String(a.played_at||'')));out+=`<div class="history-day"><span>${d.replaceAll('-','/')}</span><span class="history-day-count">${dayCounts[d]||0} 次游玩</span></div><div class="history-grid">${groups[d].map(x=>scoreCard({...x,rank:_historyRank(x.achievement)},{history:true})).join('')}</div>`}
+  E('historyContent').innerHTML=out||'<div class="empty">暂无有效游玩记录</div>';bindSongCards();
+}
+async function loadHistory(){HISTORY_ROWS=await _publicStaticAllPlays();renderHistory()}
+async function publicStatus(){
+  let s=SNAP?.status||{};
+  document.body.classList.add('snapshot-mode');
+  E('topStatus').textContent=`公开静态快照 · ${String(SNAP?.generated_at||'').replace('T',' ').slice(0,16)}`;
+}
+function bindPublic(){
+  if(E('compactHistory'))E('compactHistory').onchange=()=>{if(HISTORY_ROWS)renderHistory()};
+  $$('.nav').forEach(b=>b.onclick=async()=>{
+    $$('.nav').forEach(x=>x.classList.toggle('active',x===b));
+    $$('.tab').forEach(x=>x.classList.toggle('active',x.id===b.dataset.tab));
+    if(b.dataset.tab==='overview'){await publicStatus();await loadHome()}
+    if(b.dataset.tab==='judge'){await publicStatus();await loadAbilityRange()}
+    if(b.dataset.tab==='history'){await publicStatus();await loadHistory()}
+  });
+  $$('[data-jrange]').forEach(b=>b.onclick=()=>setJRange(b.dataset.jrange));
+  if(E('multiLevel'))E('multiLevel').onchange=e=>{JR.multi=e.target.checked;if(!JR.multi&&JR.selected.length>1)JR.selected=JR.selected.slice(-1);renderJudge()};
+  E('closeModal').onclick=closeModal;E('modal').onclick=e=>{if(e.target===E('modal'))closeModal()};
+}
+(async()=>{try{await initPublicStatic();bindPublic();await publicStatus();await loadHome()}catch(e){console.error(e);E('topStatus').textContent='读取失败：'+e.message}})();
+</script>
+</body></html>
